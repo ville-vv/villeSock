@@ -1,136 +1,55 @@
 package main
 
 import (
-	"path"
-	"time"
 	"github.com/shadowsocks/go-shadowsocks2/core"
-	vllog "villeSock/vender/common/villog"
-	"flag"
-	//"strings"
 	"net/url"
-	"io"
-	"encoding/base64"
-	"crypto/rand"
 	"os"
 	"syscall"
 	"fmt"
 	"os/signal"
 	"strings"
+	mconf "villeSock/src/config"
+	vllog "common/villog"
+	"villeSock/src/handle"
 )
 
 /**
- * 用户组
+ * ciph ：Cipher interface类型 主要包含 StreamConn(net.Conn) net.Conn
+ * 和 PacketConn(net.PacketConn) net.PacketConn
  */
-type UserGroup struct{
-	Name string `json:"name"`
-	Server    string `json:"server"`
-	Port int	`json:"port"`
-	Password  string `json:"password"`
-	Cipher    string `json:"cipher"`
-	Key       string `json:"key"`
-	Keygen    int	 `json:"key_gen"`
-	UDPTimeout	  time.Duration	 `json:"time_out"`
-}
+func runWork(user *mconf.UserGroup)( err error){
 
-type Config struct {
-	UserGroups []*UserGroup `json:"user_groups"`
-	UDPTimeout time.Duration `json:"time_out"`
-}
-
-var config = &Config{}
-
-
-var InputArgs struct {
-	HomePath string
-	ConfPath string
-}
-
-func LoadConfigFile(configName string){
-	//
-	if err := vllog.LoadJsonData(configName, config); err != nil{
-		vllog.LogE("Load config file error:%v", err)
-		panic(0)
-	}
-}
-
-/**
- * 参数和配置读取
- */
-func argsPare(){
-	//设置命令行参数
-	flag.StringVar(&InputArgs.HomePath, "home", "", "The home path of progream")
-	flag.StringVar(&InputArgs.ConfPath, "conf", "", "The config file path")
-	flag.DurationVar(&config.UDPTimeout,"timeout", 5*time.Minute, "UDP tunnel timeout")
-	flag.Parse()
-
-	vllog.LogI("InputArgs.HomePath:%s", InputArgs.HomePath)
-	vllog.LogI("InputArgs.ConfPath:%s", InputArgs.ConfPath)
-	vllog.LogI("config.UDPTimeout:%s", config.UDPTimeout)
-
-	if(InputArgs.ConfPath == ""){
-		LoadConfigFile(path.Join(InputArgs.HomePath ,"./config/config.json"))
+	addr := user.Server
+	cipher := user.Cipher
+	password := user.Password
+	//判断是否以 ss://开头 (ss://是 websocket连接协议)
+	if strings.HasPrefix(addr, "ss://") {
+		addr, cipher, password, err = parseURL(addr)
+		if err != nil {
+			vllog.LogE("error :",err)
+		}
 	}else{
-		LoadConfigFile(InputArgs.ConfPath)
+		addr = fmt.Sprintf("%s:%d",user.Server, user.Port)
 	}
-
-
-	for k, user := range config.UserGroups{
-
-		if user.Server == "" || user.Server == " "{
-			vllog.LogE("config.Server is empty:%s")
-			os.Exit(1)
-		}
-
-		if user.Keygen > 0 {
-			key := make([]byte, user.Keygen)
-			io.ReadFull(rand.Reader, key)
-			user.Key = base64.URLEncoding.EncodeToString(key)
-		}
-		if user.Cipher == "" || user.Cipher == " " {
-			vllog.LogE("cipher must be %v", core.ListCipher())
-			os.Exit(1)
-		}
-		vllog.LogI("\n[No.%d]\n[Name:%s]\n[Server:%s]\n[Port:%d]\n[Password:%s]\n[Cipher:%s]\n[Key:%s]",k,
-			user.Name, user.Server, user.Port, user.Password, user.Cipher, string(user.Key))
+	ciph, err := core.PickCipher(cipher, []byte(user.Key), password)
+	if err != nil {
+		vllog.LogE("Error :", err)
+		return err
 	}
-
+	vllog.LogI("addr = %s",addr)
+	go handle.UdpRemote(addr, user.UDPTimeout ,ciph.PacketConn)
+	go handle.TcpRemote(addr, ciph.StreamConn)
+	return nil
 }
-
 
 func main() {
 	//获取参数
-	argsPare();
-
-
-
-	/**
-	 * ciph ：Cipher interface类型 主要包含 StreamConn(net.Conn) net.Conn
-	 * 和 PacketConn(net.PacketConn) net.PacketConn
-	 */
-	 for _, user := range config.UserGroups{
-
-		 addr := user.Server
-		 cipher := user.Cipher
-		 password := user.Password
-		 var err error
-		 //判断是否以 ss://开头 (ss://是 websocket连接协议)
-		 if strings.HasPrefix(addr, "ss://") {
-			 addr, cipher, password, err = parseURL(addr)
-			 if err != nil {
-				 vllog.LogE("error :",err)
-			 }
-		 }else{
-			 addr = fmt.Sprintf("%s:%d",user.Server, user.Port)
-		 }
-		 ciph, err := core.PickCipher(cipher, []byte(user.Key), password)
-		 if err != nil {
-			 vllog.LogE("Error :", err)
-			 os.Exit(1)
-		 }
-		 vllog.LogI("addr = %s ciph=%v",addr, ciph)
-		 go udpRemote(addr, user.UDPTimeout ,ciph.PacketConn)
-		 go tcpRemote(addr, ciph.StreamConn)
-	 }
+	confArgs := mconf.ArgsPare()
+	for _, user := range confArgs.UserGroups{
+		if err := runWork(user); err != nil{
+			os.Exit(1)
+		}
+	}
 
 	//检测系统信号
 	sigCh := make(chan os.Signal, 1)

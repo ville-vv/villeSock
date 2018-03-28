@@ -24,7 +24,7 @@ const (
 var LogFormat = []string{
 	`%{shortfunc} ▶ %{level:.4s} %{message}`,
 	`%{time:15:04:05.00} %{shortfunc} ▶ %{level:.4s} %{id:03x} %{message}`,
-	`%{color}%{time:15:04:05.00} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	`%{color}%{time:15:04:05.00} %{shortfunc} %{shortfile} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 }
 
 var LogLevelMap = map[string]int{

@@ -1,4 +1,4 @@
-package main
+package handle
 
 import (
 	"io"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"github.com/shadowsocks/go-shadowsocks2/socks"
 	"fmt"
-	"villeSock/vender/common/villog"
+	"common/villog"
 )
 
 // Create a SOCKS server listening on addr and proxy to server.
@@ -93,7 +93,7 @@ func tcpLocal(addr, server string, shadow func(net.Conn) net.Conn, getAddr func(
 }
 
 // Listen on addr for incoming connections.
-func tcpRemote(addr string, shadow func(net.Conn) net.Conn) {
+func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		villog.LogE("failed to listen on %s: %v", addr, err)

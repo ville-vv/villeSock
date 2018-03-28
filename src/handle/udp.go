@@ -1,4 +1,4 @@
-package main
+package handle
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/shadowsocks/go-shadowsocks2/socks"
-	"villeSock/vender/common/villog"
+	"common/villog"
 )
 
 type mode int
@@ -121,7 +121,7 @@ func udpSocksLocal(laddr, server string, timeout time.Duration,shadow func(net.P
 }
 
 // Listen on addr for encrypted packets and basically do UDP NAT.
-func udpRemote(addr string, timeout time.Duration, shadow func(net.PacketConn) net.PacketConn) {
+func UdpRemote(addr string, timeout time.Duration, shadow func(net.PacketConn) net.PacketConn) {
 	c, err := net.ListenPacket("udp", addr)
 	if err != nil {
 		villog.LogE("UDP remote listen error: %v", err)

@@ -1,5 +1,0 @@
-
-2018/03/22 11:32:19.85 argsPare ▶ INFO 001 InputArgs.HomePath:
-2018/03/22 11:32:19.85 argsPare ▶ INFO 002 InputArgs.ConfPath:
-2018/03/22 11:32:19.85 LoadConfigFile ▶ INFO 003 Load config file error:json: Unmarshal(non-pointer struct { Server string "json:\"server\""; UserGroups []*main.UserGroup "json:\"user_groups\""; UDPTimeout time.Duration "json:\"time_out\"" })
-2018/03/22 11:32:19.85 argsPare ▶ INFO 004 InputArgs.Server:
