@@ -82,8 +82,8 @@ func ArgsPare() *Config{
 			vllog.LogE("cipher must be %v", core.ListCipher())
 			os.Exit(1)
 		}
-		vllog.LogI("\n[No.%d]\n[Name:%s]\n[Server:%s]\n[Port:%d]\n[Password:%s]\n[Cipher:%s]\n[Key:%s]",k,
-			user.Name, user.Server, user.Port, user.Password, user.Cipher, string(user.Key))
+		vllog.LogI("[No.%d]\n[Name:%s]\n[Server:%s]\n[Port:%d]\n[Password:%s]\n[Cipher:%s]\n[Key:%s]\n" +
+			"**************************************************\n",k,user.Name, user.Server, user.Port, user.Password, user.Cipher, string(user.Key))
 	}
 
 	return MConfig
