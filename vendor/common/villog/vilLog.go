@@ -107,7 +107,7 @@ func init(){
 		Path:"./log",
 		Level:"DEBUG",
 		FormatMd: 2,
-		FileBackEnd:false,
+		FileBackEnd:true,
 		StderrBackEnd:false,
 		NetBackEnd:false,
 		ModuleName:"vil",
