@@ -49,26 +49,25 @@ func parseURL(s string) (addr, cipher, password string, err error) {
  * 和 PacketConn(net.PacketConn) net.PacketConn
  */
 func runWork(user *mconf.UserGroup)( err error){
-
 	addr := user.Server
+	//加密方式
 	cipher := user.Cipher
 	password := user.Password
 	//判断是否以 ss://开头 (ss://是 websocket连接协议)
 	if strings.HasPrefix(addr, "ss://") {
 		addr, cipher, password, err = parseURL(addr)
 		if err != nil {
-			vllog.LogE("error :",err)
+			return err
 		}
 	}else{
 		addr = fmt.Sprintf("%s:%d",user.Server, user.Port)
 	}
 	ciph, err := core.PickCipher(cipher, []byte(user.Key), password)
 	if err != nil {
-		vllog.LogE("Error :", err)
 		return err
 	}
 	vllog.LogI("addr = %s",addr)
-	go handle.UdpRemote(addr, user.UDPTimeout ,ciph.PacketConn)
+	go handle.UdpRemote(addr, user.UDPTimeout , ciph.PacketConn)
 	go handle.TcpRemote(addr, ciph.StreamConn)
 	return nil
 }
@@ -78,6 +77,7 @@ func main() {
 	confArgs := mconf.ArgsPare()
 	for _, user := range confArgs.UserGroups{
 		if err := runWork(user); err != nil{
+			vllog.LogE("error :",err)
 			os.Exit(1)
 		}
 	}
