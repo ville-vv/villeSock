@@ -6,7 +6,7 @@ import (
 )
 
 func WritePid(path string) error {
-	pid := os.Getegid()
+	pid := os.Getpid()
 	f, err := os.Create(path)
 	if err != nil {
 		fmt.Println("writepid err :", err)
