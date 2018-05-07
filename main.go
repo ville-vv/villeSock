@@ -72,7 +72,14 @@ func runWork(user *mconf.UserGroup) (err error) {
 	return nil
 }
 
+var (
+	Version = "release_v1.0.0"
+)
+
 func main() {
+
+	fmt.Println("Version:",Version)
+	//输出进程ID
 	unite.WritePid("villeSock_Pid.txt")
 	//获取参数
 	confArgs := mconf.ArgsPare()

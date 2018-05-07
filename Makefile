@@ -3,7 +3,7 @@ BINARY=villeSock
 VERSION=1.0.0
 BUILD=`data +%FT%T%Z`
 
-LDFLAGS=ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
+LDFLAGS=-ldflags "-X main.Version=${VERSION}"
 
 build:
 	go build ${LDFLAGS} -o ${BINARY}
