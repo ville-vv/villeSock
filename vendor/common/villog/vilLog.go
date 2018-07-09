@@ -7,11 +7,14 @@ import (
 	"os"
 	"net"
 	"strings"
-	"io"
-	"path"
 	"fmt"
+	"path"
+	"io"
 )
 
+/**
+ *日志级别
+ */
 const (
 	CRITICAL int = iota
 	ERROR
@@ -21,12 +24,18 @@ const (
 	DEBUG
 )
 
+/**
+ * 日志输出格式
+ */
 var LogFormat = []string{
 	`%{shortfunc} ▶ %{level:.4s} %{message}`,
 	`%{time:15:04:05.00} %{shortfunc} ▶ %{level:.4s} %{id:03x} %{message}`,
 	`%{color}%{time:15:04:05.00} %{shortfunc} %{shortfile} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 }
 
+/**
+ * 日志级别与 string类型映射
+ */
 var LogLevelMap = map[string]int{
 	"CRITICAL":CRITICAL,
 	"ERROR":ERROR,
@@ -35,8 +44,6 @@ var LogLevelMap = map[string]int{
 	"INFO":INFO,
 	"DEBUG":DEBUG,
 }
-
-var vLog *VilLog
 
 /**
  * 从文件读取json 数据
@@ -80,28 +87,36 @@ func getHostName() (hostname string, err error) {
 }
 
 /**
- * 日志配置文件
+ * 日志配置文件结构体
  */
 type VilLogConf struct{
-	ConfFilePath string `json:"conf_file_path"`
-	Path      string `json:"out_path"`
+	ConfFilePath string `json:"conf_file_path"`		//配置文件路径
+	Path      string `json:"out_path"`				//日志输出路径
 	Level     string `json:"log_level"`
 	FormatMd    int `json:"format_md"`
-	FileBackEnd bool `json:"file_back_end"`
-	StderrBackEnd bool `json:"stderr_back_end"`
-	NetBackEnd bool `json:"net_back_end"`
-	ModuleName string `json:"module_name"`
+	FileBackEnd bool `json:"file_back_end"`			//文件终端输出
+	StderrBackEnd bool `json:"stderr_back_end"`		//标准错误终端输出
+	NetBackEnd bool `json:"net_back_end"`			// 网络终端输出
+	ModuleName string `json:"module_name"`			// 模块名称
 	ExtraCalldepth int `json:"extra_calldepth"`
 }
 
+var vLog *VilLog
+
+/**
+ * 日志 控制结构体
+ */
 type VilLog struct{
 	logConf *VilLogConf
 	log *logging.Logger
 	logformat logging.Formatter
 }
 
-
+/**
+ * 初始化
+ */
 func init(){
+	//日志模块默认配置
 	conf := &VilLogConf{
 		ConfFilePath:"",
 		Path:"./log",
@@ -117,7 +132,7 @@ func init(){
 }
 
 /**
- *
+ * 获取配置 实例
  */
 func NewLogConfig(fileName string) (*VilLogConf, error){
 	var logconf = new(VilLogConf)
@@ -128,6 +143,9 @@ func NewLogConfig(fileName string) (*VilLogConf, error){
 	return logconf, nil
 }
 
+/**
+ * 获取 日志对象
+ */
 func NewVilLog(logconf *VilLogConf) (*VilLog){
 	var villog = &VilLog{}
 	if logconf == nil{
@@ -146,11 +164,15 @@ func NewVilLog(logconf *VilLogConf) (*VilLog){
 		villog.logConf = logconf;
 	}
 	villog.logformat = logging.MustStringFormatter(LogFormat[villog.logConf.FormatMd])
+	// 获取 go-logging 实例
 	villog.log = logging.MustGetLogger(villog.logConf.ModuleName)
 	villog.AddLogBackend()
 	return villog
 }
 
+/**
+ * 添加日志输出的终端
+ */
 func (self VilLog)AddLogBackend()(err error){
 	var backend logging.LeveledBackend
 	if self.logConf.FileBackEnd {
@@ -165,6 +187,7 @@ func (self VilLog)AddLogBackend()(err error){
 		if err != nil{
 			return err
 		}
+
 		backend = self.getLogBackend(file, self.logformat, LogLevelMap[self.logConf.Level]);
 	}else {
 		backend = self.getLogBackend(os.Stderr, self.logformat, LogLevelMap[self.logConf.Level]);
@@ -174,6 +197,9 @@ func (self VilLog)AddLogBackend()(err error){
 	return nil
 }
 
+/**
+ * 获取终端
+ */
 func (self VilLog)getLogBackend(out io.Writer, format logging.Formatter, level int)( logging.LeveledBackend){
 	backend := logging.NewLogBackend(out, "", 1)
 	backendFormatter := logging.NewBackendFormatter(backend, format)

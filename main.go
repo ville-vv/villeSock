@@ -80,7 +80,7 @@ func main() {
 
 	fmt.Println("Version:",Version)
 	//输出进程ID
-	unite.WritePid("villeSock_Pid.txt")
+	unite.WritePid("villeSock_Pid")
 	//获取参数
 	confArgs := mconf.ArgsPare()
 
