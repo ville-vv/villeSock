@@ -23,6 +23,8 @@
 读取配置文件的位置可以通过启动参数自定义。
 
 ```
+//默认使用./config/config.json 配置文件
+//nohup ./vilSock >my.file 2>&1 &
 vilSock -conf "路径+文件名"
 ```
 
