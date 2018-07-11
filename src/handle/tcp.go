@@ -125,11 +125,7 @@ func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 				villog.LogE("failed to get target address: %v", err)
 				return
 			}
-			
-			//tgtadd := tgt.String();
-			//if strings.Contains(tgtadd, "www.google.com"){
-			//	tgtadd = strings.Replace(tgtadd,"www.google.com","www.google.com.sg", -1)
-			//}
+
 			/**
 			 * 建立要访问的目的地主 远程连接
 			 */
@@ -153,6 +149,53 @@ func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 	}
 }
 
+func dtCopy(dst io.Writer, src io.Reader, buf []byte, flag int32) (written int64, err error) {
+	// If the reader has a WriteTo method, use it to do the copy.
+	// Avoids an allocation and a copy.
+
+	//if wt, ok := src.(io.WriterTo); ok {
+	//	villog.LogI("WriterTo")
+	//	return wt.WriteTo(dst)
+	//}
+	//// Similarly, if the writer has a ReadFrom method, use it to do the copy.
+	//if rt, ok := dst.(io.ReaderFrom); ok {
+	//	villog.LogI("ReaderFrom")
+	//	return rt.ReadFrom(src)
+	//}
+	if buf == nil {
+		buf = make([]byte, 32*1024)
+	}
+	for {
+		villog.LogI("等待数据转发 %d", flag)
+		nr, er := src.Read(buf)
+		if nr > 0 {
+			villog.LogI("%d data length:%d",flag,nr)
+			nw, ew := dst.Write(buf[0:nr])
+			if nw > 0 {
+				written += int64(nw)
+			}
+			if ew != nil {
+				err = ew
+				break
+			}
+			if nr != nw {
+				err = io.ErrShortWrite
+				break
+			}
+		}
+		if er != nil {
+			if er != io.EOF {
+				err = er
+			}
+			break
+		}
+	}
+	return written, err
+}
+func DtCopy(dst io.Writer, src io.Reader, flag int32) (written int64, err error) {
+	return dtCopy(dst, src, nil, flag)
+}
+
 // relay copies between left and right bidirectionally. Returns number of
 // bytes copied from right to left, from left to right, and any error occurred.
 func relay(left, right net.Conn) (int64, int64, error) {
@@ -161,21 +204,24 @@ func relay(left, right net.Conn) (int64, int64, error) {
 		Err error
 	}
 	ch := make(chan res)
-	villog.LogI("left = %v right = %v", left.LocalAddr(), right.LocalAddr())
+
 	go func() {
+		villog.LogI("开始 target = %v -> origin = %v", right.LocalAddr(), left.LocalAddr())
 		n, err := io.Copy(right, left)
 		right.SetDeadline(time.Now()) // wake up the other goroutine blocking on right
 		left.SetDeadline(time.Now())  // wake up the other goroutine blocking on left
 		ch <- res{n, err}
 	}()
 
+	villog.LogI("后执行这个 origin = %v -> target = %v", left.LocalAddr(), right.LocalAddr())
 	n, err := io.Copy(left, right)
 	right.SetDeadline(time.Now()) // wake up the other goroutine blocking on right
 	left.SetDeadline(time.Now())  // wake up the other goroutine blocking on left
 	rs := <-ch
+	villog.LogI("转发数据完成：")
 
 	if err == nil {
 		err = rs.Err
 	}
-	return n, rs.N, err
+	return n, 0, err
 }

@@ -122,8 +122,8 @@ func init(){
 		Path:"./log",
 		Level:"DEBUG",
 		FormatMd: 2,
-		FileBackEnd:true,
-		StderrBackEnd:false,
+		FileBackEnd:false,
+		StderrBackEnd:true,
 		NetBackEnd:false,
 		ModuleName:"vil",
 		ExtraCalldepth:2,
@@ -154,8 +154,8 @@ func NewVilLog(logconf *VilLogConf) (*VilLog){
 			Path:"./log",
 			Level:"INFO",
 			FormatMd: 2,
-			FileBackEnd:true,
-			StderrBackEnd:false,
+			FileBackEnd:false,
+			StderrBackEnd:true,
 			NetBackEnd:false,
 			ModuleName:"vil",
 			ExtraCalldepth:2,
@@ -175,6 +175,7 @@ func NewVilLog(logconf *VilLogConf) (*VilLog){
  */
 func (self VilLog)AddLogBackend()(err error){
 	var backend logging.LeveledBackend
+	fmt.Println("log end:",self.logConf.FileBackEnd)
 	if self.logConf.FileBackEnd {
 		//判断是否存在该文件夹
 		err := os.MkdirAll(self.logConf.Path, 0777)
