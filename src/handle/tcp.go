@@ -4,9 +4,9 @@ import (
 	"io"
 	"net"
 	"time"
-	"strings"
+	//"strings"
 	"github.com/shadowsocks/go-shadowsocks2/socks"
-	"fmt"
+	//"fmt"
 	"common/villog"
 )
 
@@ -94,6 +94,7 @@ func tcpLocal(addr, server string, shadow func(net.Conn) net.Conn, getAddr func(
 
 // Listen on addr for incoming connections.
 func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
+	//启动服务监听
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
 		villog.LogE("failed to listen on %s: %v", addr, err)
@@ -111,20 +112,27 @@ func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 		go func() {
 			defer c.Close()
 			c.(*net.TCPConn).SetKeepAlive(true)
+			/**
+			 * 数据解密
+			 */
 			c = shadow(c)
 
+			/**
+			 * 获取访问的目的地址
+			 */
 			tgt, err := socks.ReadAddr(c)
 			if err != nil {
 				villog.LogE("failed to get target address: %v", err)
 				return
 			}
 			
-			tgtadd := tgt.String();
-			fmt.Println("Had build connect with RemoteAddr = ", tgt)
-			if strings.Contains(tgtadd, "www.google.com"){
-				tgtadd = strings.Replace(tgtadd,"www.google.com","www.google.com.sg", -1)
-			}
-
+			//tgtadd := tgt.String();
+			//if strings.Contains(tgtadd, "www.google.com"){
+			//	tgtadd = strings.Replace(tgtadd,"www.google.com","www.google.com.sg", -1)
+			//}
+			/**
+			 * 建立要访问的目的地主 远程连接
+			 */
 			rc, err := net.Dial("tcp", tgt.String())
 			if err != nil {
 				villog.LogE("failed to connect to target: %v", err)
@@ -133,7 +141,7 @@ func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 			defer rc.Close()
 			rc.(*net.TCPConn).SetKeepAlive(true)
 
-			villog.LogI("proxy %s <-> %s", c.RemoteAddr(), tgt)
+			villog.LogI("had proxy origin:%s <-> target:%s", c.RemoteAddr(), tgt)
 			_, _, err = relay(c, rc)
 			if err != nil {
 				if err, ok := err.(net.Error); ok && err.Timeout() {
@@ -153,7 +161,7 @@ func relay(left, right net.Conn) (int64, int64, error) {
 		Err error
 	}
 	ch := make(chan res)
-	fmt.Println("left = ", left.LocalAddr(), "right = ", right.LocalAddr())
+	villog.LogI("left = %v right = %v", left.LocalAddr(), right.LocalAddr())
 	go func() {
 		n, err := io.Copy(right, left)
 		right.SetDeadline(time.Now()) // wake up the other goroutine blocking on right

@@ -1,6 +1,6 @@
 #villeSock makefile
-BINARY=villeSock
-VERSION=1.0.0
+BINARY=./bin/villeSock
+VERSION=v1.2.0
 BUILD=`data +%FT%T%Z`
 
 LDFLAGS=-ldflags "-X main.Version=${VERSION}"

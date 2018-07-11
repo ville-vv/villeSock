@@ -77,7 +77,15 @@ var (
 )
 
 func main() {
-
+	/**
+	 * 异常捕获
+	 */
+	defer func() {
+		if err := recover(); err != nil{
+			fmt.Println("发生异常：",err)
+		}
+	}()
+	//输出版本号
 	fmt.Println("Version:",Version)
 	//输出进程ID
 	unite.WritePid("villeSock_Pid")
