@@ -4,6 +4,7 @@ go:
   - "1.9.x"
   - "1.10.x"
 script:
-  - cd $GOPATH/src
-  - ll
+  - cd $GOPATH/src/villeSock
+  - pwd
+  - ls -l
   - make
