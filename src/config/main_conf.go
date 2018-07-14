@@ -42,7 +42,7 @@ var InputArgs struct {
 func LoadConfigFile(configName string){
 	if err := vllog.LoadJsonData(configName, MConfig); err != nil{
 		vllog.LogE("Load config file error:%v", err)
-		panic(0)
+		panic(err)
 	}
 }
 
