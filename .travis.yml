@@ -1,3 +1,4 @@
+go_import_path: vilsongwei/vilSock
 language: go
 
 go:
