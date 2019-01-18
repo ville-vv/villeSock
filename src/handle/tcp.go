@@ -4,6 +4,7 @@ import (
 	"io"
 	"net"
 	"time"
+
 	//"strings"
 	"github.com/shadowsocks/go-shadowsocks2/socks"
 	//"fmt"
@@ -108,7 +109,7 @@ func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 			villog.LogE("failed to accept: %v", err)
 			continue
 		}
-		
+
 		go func() {
 			defer c.Close()
 			c.(*net.TCPConn).SetKeepAlive(true)
@@ -169,7 +170,7 @@ func dtCopy(dst io.Writer, src io.Reader, buf []byte, flag int32) (written int64
 		villog.LogI("等待数据转发 %d", flag)
 		nr, er := src.Read(buf)
 		if nr > 0 {
-			villog.LogI("%d data length:%d",flag,nr)
+			villog.LogI("%d data length:%d", flag, nr)
 			nw, ew := dst.Write(buf[0:nr])
 			if nw > 0 {
 				written += int64(nw)

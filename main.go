@@ -4,7 +4,6 @@ import (
 	"common/unite"
 	vllog "common/villog"
 	"fmt"
-	"github.com/shadowsocks/go-shadowsocks2/core"
 	"net/url"
 	"os"
 	"os/signal"
@@ -12,13 +11,15 @@ import (
 	"syscall"
 	mconf "villeSock/src/config"
 	"villeSock/src/handle"
+
+	"github.com/shadowsocks/go-shadowsocks2/core"
 )
 
 /**
  * @author：注释-凌霄
  * 解析 url 参数 参数格式为：scheme://[userinfo@]host/path[?query][#fragment]
  * @return addr: host+post ,
- * @return cipher: 用户名
+ * @return cipher: 加密方式
  * @return password:密码
  * @return err 错误信息
  */
@@ -81,17 +82,18 @@ func main() {
 	 * 异常捕获
 	 */
 	defer func() {
-		if err := recover(); err != nil{
-			fmt.Println("发生异常：",err)
+		if err := recover(); err != nil {
+			fmt.Println("发生异常：", err)
 		}
 	}()
 	//输出版本号
-	fmt.Println("Version:",Version)
+	fmt.Println("Version:", Version)
 	//输出进程ID
 	unite.WritePid("villeSock_Pid")
 	//获取参数
 	confArgs := mconf.ArgsPare()
 
+	// 根据用户数开启多个 断开服务
 	for _, user := range confArgs.UserGroups {
 		if err := runWork(user); err != nil {
 			vllog.LogE("error :", err)

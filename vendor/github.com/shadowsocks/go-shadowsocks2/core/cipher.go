@@ -108,9 +108,13 @@ func PickCipher(name string, key []byte, password string) (Cipher, error) {
 	return nil, ErrCipherNotSupported
 }
 
-type aeadCipher struct{ shadowaead.Cipher }
+type aeadCipher struct {
+	shadowaead.Cipher
+}
 
-func (aead *aeadCipher) StreamConn(c net.Conn) net.Conn { return shadowaead.NewConn(c, aead) }
+func (aead *aeadCipher) StreamConn(c net.Conn) net.Conn {
+	return shadowaead.NewConn(c, aead)
+}
 func (aead *aeadCipher) PacketConn(c net.PacketConn) net.PacketConn {
 	return shadowaead.NewPacketConn(c, aead)
 }
