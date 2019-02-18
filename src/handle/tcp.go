@@ -132,13 +132,12 @@ func TcpRemote(addr string, shadow func(net.Conn) net.Conn) {
 			 */
 			rc, err := net.Dial("tcp", tgt.String())
 			if err != nil {
-				villog.LogE("failed to connect to target: %v", err)
 				return
 			}
 			defer rc.Close()
 			rc.(*net.TCPConn).SetKeepAlive(true)
 
-			villog.LogI("had proxy origin:%s <-> target:%s", c.RemoteAddr(), tgt)
+			// villog.LogI("had proxy origin:%s <-> target:%s", c.RemoteAddr(), tgt)
 			_, _, err = relay(c, rc)
 			if err != nil {
 				if err, ok := err.(net.Error); ok && err.Timeout() {
@@ -207,19 +206,16 @@ func relay(left, right net.Conn) (int64, int64, error) {
 	ch := make(chan res)
 
 	go func() {
-		villog.LogI("开始 target = %v -> origin = %v", right.LocalAddr(), left.LocalAddr())
 		n, err := io.Copy(right, left)
 		right.SetDeadline(time.Now()) // wake up the other goroutine blocking on right
 		left.SetDeadline(time.Now())  // wake up the other goroutine blocking on left
 		ch <- res{n, err}
 	}()
 
-	villog.LogI("后执行这个 origin = %v -> target = %v", left.LocalAddr(), right.LocalAddr())
 	n, err := io.Copy(left, right)
 	right.SetDeadline(time.Now()) // wake up the other goroutine blocking on right
 	left.SetDeadline(time.Now())  // wake up the other goroutine blocking on left
 	rs := <-ch
-	villog.LogI("转发数据完成：")
 
 	if err == nil {
 		err = rs.Err

@@ -7,8 +7,9 @@ import (
 
 	"sync"
 
-	"github.com/shadowsocks/go-shadowsocks2/socks"
 	"common/villog"
+
+	"github.com/shadowsocks/go-shadowsocks2/socks"
 )
 
 type mode int
@@ -22,7 +23,7 @@ const (
 const udpBufSize = 64 * 1024
 
 // Listen on laddr for UDP packets, encrypt and send to server to reach target.
-func udpLocal(laddr, server, target string, timeout time.Duration,shadow func(net.PacketConn) net.PacketConn) {
+func udpLocal(laddr, server, target string, timeout time.Duration, shadow func(net.PacketConn) net.PacketConn) {
 	srvAddr, err := net.ResolveUDPAddr("udp", server)
 	if err != nil {
 		villog.LogE("UDP server address error: %v", err)
@@ -76,7 +77,7 @@ func udpLocal(laddr, server, target string, timeout time.Duration,shadow func(ne
 }
 
 // Listen on laddr for Socks5 UDP packets, encrypt and send to server to reach target.
-func udpSocksLocal(laddr, server string, timeout time.Duration,shadow func(net.PacketConn) net.PacketConn) {
+func udpSocksLocal(laddr, server string, timeout time.Duration, shadow func(net.PacketConn) net.PacketConn) {
 	srvAddr, err := net.ResolveUDPAddr("udp", server)
 	if err != nil {
 		villog.LogE("UDP server address error: %v", err)

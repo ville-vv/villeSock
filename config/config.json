@@ -6,7 +6,7 @@
             "name":"myown",
             "port":11016,
             "password":"1234567",
-            "cipher":"AEAD_CHACHA20_POLY1305",
+            "cipher":"AES-256-CFB",
             "time_out":10
         }
     ]
